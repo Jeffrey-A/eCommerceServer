@@ -1,5 +1,10 @@
 const express = require('express');
 
+const stripe = require("stripe")("sk_test_g3BgZWKHdbt6HlK1or9qbtzv00ih7Z9vym");
+// stripe.charges.retrieve("ch_1Emsi3Kp6nHLN5JpEUFin06H", {
+//     api_key: "sk_test_g3BgZWKHdbt6HlK1or9qbtzv00ih7Z9vym"
+//   });
+
 //models
 const Products = require('./models/products');
 const Users = require('./models/users');
@@ -41,6 +46,7 @@ function getPruducts(arr){
         let price = columnData.price;
         let category = columnData.category;
         let img = columnData.img
+        let key = columnData.id
 
         data.push({name,description,price, category,img})
 
@@ -71,6 +77,26 @@ app.post('/login', (req, res)=>{
      .catch((err)=>{
         console.log("errorr login")
      })
+})
+
+app.post('/checkout', (req, res) =>{
+    const token = req.body.stripeToken; // Using Express
+
+    (async () => {
+      const charge = await stripe.charges.create({
+        amount: Number(req.body.amount),
+        currency: 'usd',
+        description: 'Example charge',
+        source: token,
+      }, (err, charge)=>{
+          if(err){
+              res.send(err)
+          }else{
+              res.send(charge)
+          }
+      });
+    })();
+
 })
 
 app.post('/register', (req,res)=>{
